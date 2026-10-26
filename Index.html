@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#030305" />
+  <meta name="description" content="J.A.R.V.I.S. — Just A Rather Very Intelligent System. Next-Generation Personal AI Assistant." />
+  <title>J.A.R.V.I.S. — Personal AI Command System</title>
+
+  <!-- Modern Futuristic Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Three.js for Real-Time 3D Hologram (gracefully falls back to SVG/Canvas if offline/blocked) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+</head>
+<body class="theme-gold" data-state="idle">
+  <!-- Ambient Background Layers -->
+  <div class="ambient-bg" aria-hidden="true">
+    <div class="ambient-nebula ambient-top"></div>
+    <div class="ambient-nebula ambient-bottom"></div>
+    <div class="hud-grid-overlay"></div>
+  </div>
+
+  <!-- Application Shell -->
+  <div class="app-shell" id="appShell">
+
+    <!-- ================= HEADER ================= -->
+    <header class="top-header" role="banner">
+      <button
+        type="button"
+        class="icon-btn"
+        id="menuBtn"
+        aria-label="Open Conversation History and Command Menu"
+        title="Command Menu & History"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" d="M4 7h16M4 12h10M4 17h16" />
+        </svg>
+      </button>
+
+      <!-- Pill-Shaped Assistant Identity Header -->
+      <div class="identity-pill" id="identityPill" role="status" aria-live="polite">
+        <span class="intelligence-orb" id="headerOrb" aria-hidden="true"></span>
+        <span class="identity-title">J.A.R.V.I.S.</span>
+        <span class="identity-divider" aria-hidden="true"></span>
+        <span class="status-badge" id="systemStatusBadge" data-status="checking">CHECKING</span>
+      </div>
+
+      <div class="header-actions">
+        <!-- Return to Home Centerpiece Button (visible during active chat) -->
+        <button
+          type="button"
+          class="icon-btn hidden"
+          id="returnHomeBtn"
+          aria-label="Return to Main Hologram Screen"
+          title="Return to Main Hologram Screen"
+        >
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+
+        <!-- Sound / Spoken Response Toggle -->
+        <button
+          type="button"
+          class="icon-btn"
+          id="soundToggleBtn"
+          aria-label="Toggle Spoken Audio Responses"
+          aria-pressed="true"
+          title="Toggle Voice Output"
+        >
+          <svg id="soundOnIcon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5z" />
+            <path stroke-linecap="round" d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" />
+          </svg>
+          <svg id="soundOffIcon" class="hidden" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" />
+          </svg>
+        </button>
+
+        <!-- Settings Shortcut -->
+        <button
+          type="button"
+          class="icon-btn"
+          id="settingsBtn"
+          aria-label="Open JARVIS Settings"
+          title="System Settings"
+        >
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="3" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ================= MAIN STAGE ================= -->
+    <main class="main-stage" id="mainStage">
+
+      <!-- Central 3D Hologram Stage -->
+      <section class="hologram-section" id="hologramSection" aria-label="JARVIS Holographic Intelligence Matrix">
+        <div class="hologram-viewport" id="hologramViewport">
+          <!-- WebGL Canvas mounts here -->
+          <canvas id="hologramCanvas" aria-label="3D Golden Holographic Intelligence Sphere"></canvas>
+
+          <!-- Automatic SVG/CSS Fallback if WebGL is unavailable -->
+          <div class="hologram-fallback hidden" id="hologramFallback" aria-hidden="true">
+            <svg viewBox="0 0 300 300" class="fallback-svg">
+              <defs>
+                <radialGradient id="goldCoreGrad" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#FFF3D1" stop-opacity="0.95" />
+                  <stop offset="45%" stop-color="#FFB547" stop-opacity="0.65" />
+                  <stop offset="100%" stop-color="#FFB547" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <circle cx="150" cy="150" r="128" class="fb-ring fb-ring-outer" />
+              <circle cx="150" cy="150" r="104" class="fb-ring fb-ring-ticks" />
+              <circle cx="150" cy="150" r="82" class="fb-ring fb-ring-mid" />
+              <ellipse cx="150" cy="150" rx="95" ry="38" class="fb-ring fb-orbit-1" />
+              <ellipse cx="150" cy="150" rx="38" ry="95" class="fb-ring fb-orbit-2" />
+              <circle cx="150" cy="150" r="52" fill="url(#goldCoreGrad)" class="fb-core" />
+            </svg>
+          </div>
+
+          <!-- Cinematic Technical Telemetry Readouts (Reference B) -->
+          <div class="hud-readout hud-top-left" aria-hidden="true">
+            <span class="hud-label">CORE MATRIX // MK-VII</span>
+            <span class="hud-value" id="hudCoordReadout">40.7128° N · 74.0060° W</span>
+          </div>
+          <div class="hud-readout hud-top-right" aria-hidden="true">
+            <span class="hud-label">NEURAL FLUX</span>
+            <span class="hud-value" id="hudFluxReadout">99.94% SYNC</span>
+          </div>
+          <div class="hud-readout hud-bottom-left" aria-hidden="true">
+            <span class="hud-label">HARMONIC STATE</span>
+            <span class="hud-value" id="hudStateReadout">IDLE // STANDBY</span>
+          </div>
+          <div class="hud-readout hud-bottom-right" aria-hidden="true">
+            <span class="hud-label">AUDIO SYNTHESIS</span>
+            <span class="hud-value" id="hudVoiceReadout">READY</span>
+          </div>
+
+          <!-- Center State Pill (LISTENING / THINKING / SPEAKING / ERROR) -->
+          <div class="hologram-state-banner" id="hologramStateBanner" role="status" aria-live="polite">
+            <span class="state-dot"></span>
+            <span id="hologramStateText">STANDBY</span>
+            <button type="button" class="stop-speech-chip hidden" id="stopSpeechChip" title="Interrupt Speech">
+              STOP VOICE
+            </button>
+          </div>
+        </div>
+
+        <!-- Personalized Welcome Text -->
+        <div class="welcome-block" id="welcomeBlock">
+          <h1 class="welcome-greeting" id="welcomeGreeting">Good evening, Sir.</h1>
+          <p class="welcome-subtitle" id="welcomeSubtitle">All systems are calibrated. How may I assist you today?</p>
+        </div>
+      </section>
+
+      <!-- Active Conversation Stream (Adapts seamlessly when conversation begins) -->
+      <section class="conversation-section hidden" id="conversationSection" aria-label="Conversation History">
+        <div class="messages-container" id="messagesContainer" role="log" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <!-- ================= BOTTOM COMMAND DECK ================= -->
+    <footer class="bottom-deck" id="bottomDeck">
+
+      <!-- Active Mode Indicator Banner (when a special Quick Action mode is active) -->
+      <div class="active-mode-bar hidden" id="activeModeBar">
+        <div class="active-mode-info">
+          <span class="active-mode-dot"></span>
+          <span id="activeModeLabel">Mode: General Intelligence</span>
+        </div>
+        <button type="button" class="clear-mode-btn" id="clearModeBtn" aria-label="Reset Mode">
+          Reset Mode ✕
+        </button>
+      </div>
+
+      <!-- Horizontally Scrollable Quick Action Chips -->
+      <nav class="quick-actions-rail" id="quickActionsRail" aria-label="Quick Assistant Actions">
+        <button type="button" class="action-chip" data-action="ask">
+          <span class="chip-icon">✦</span> Ask JARVIS
+        </button>
+        <button type="button" class="action-chip" data-action="research">
+          <span class="chip-icon">🌐</span> Web Research
+        </button>
+        <button type="button" class="action-chip" data-action="coding">
+          <span class="chip-icon">⌘</span> Coding Assistant
+        </button>
+        <button type="button" class="action-chip" data-action="explain">
+          <span class="chip-icon">◈</span> Explain Anything
+        </button>
+        <button type="button" class="action-chip" data-action="study">
+          <span class="chip-icon">🎓</span> Study Assistant
+        </button>
+        <button type="button" class="action-chip" data-action="write">
+          <span class="chip-icon">✎</span> Write Something
+        </button>
+        <button type="button" class="action-chip" data-action="image">
+          <span class="chip-icon">❖</span> Image Creation
+        </button>
+        <button type="button" class="action-chip" data-action="translate">
+          <span class="chip-icon">文</span> Translate
+        </button>
+        <button type="button" class="action-chip" data-action="briefing">
+          <span class="chip-icon">☀</span> Daily Briefing
+        </button>
+        <button type="button" class="action-chip" data-action="diagnostics">
+          <span class="chip-icon">⚙</span> System Diagnostics
+        </button>
+      </nav>
+
+      <!-- Floating Message Composer -->
+      <form class="composer-bar" id="composerForm" autocomplete="off">
+        <!-- Attachment / Context Button -->
+        <button
+          type="button"
+          class="composer-btn"
+          id="attachBtn"
+          aria-label="Attach Code, Text File, or Context"
+          title="Attach Code/Text File or Prompt Template"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+
+        <!-- Multiline Auto-Resizing Input -->
+        <div class="composer-input-wrap">
+          <textarea
+            id="messageInput"
+            class="composer-input"
+            rows="1"
+            placeholder="What can I do for you, Sir?"
+            aria-label="Message to JARVIS"
+          ></textarea>
+        </div>
+
+        <!-- Microphone Dictation Button -->
+        <button
+          type="button"
+          class="composer-btn mic-btn"
+          id="micBtn"
+          aria-label="Voice Input Microphone"
+          aria-pressed="false"
+          title="Speak to JARVIS"
+        >
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9">
+            <rect x="9" y="2" width="6" height="12" rx="3" />
+            <path stroke-linecap="round" d="M5 10v1a7 7 0 0014 0v-1M12 18v4M8 22h8" />
+          </svg>
+        </button>
+
+        <!-- Dedicated Full-Screen Voice Mode Shortcut -->
+        <button
+          type="button"
+          class="composer-btn voice-mode-btn"
+          id="voiceModeBtn"
+          aria-label="Open Dedicated Full-Screen Voice Conversation Mode"
+          title="Immersive Voice Conversation Mode"
+        >
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9">
+            <path stroke-linecap="round" d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4" />
+          </svg>
+        </button>
+
+        <!-- Send / Stop Generation Button -->
+        <button
+          type="submit"
+          class="composer-btn send-btn"
+          id="sendBtn"
+          aria-label="Send Message"
+          title="Send Message"
+        >
+          <svg id="sendIcon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 5l7 7-7 7" />
+          </svg>
+          <svg id="stopIcon" class="hidden" viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+            <rect x="6" y="6" width="12" height="12" rx="2" />
+          </svg>
+        </button>
+      </form>
+    </footer>
+  </div>
+
+  <!-- ================= DEDICATED FULL-SCREEN VOICE CONVERSATION MODE (Reference A Screen 3) ================= -->
+  <section
+    class="voice-screen-overlay hidden"
+    id="voiceScreenOverlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="JARVIS Live Voice Conversation Mode"
+  >
+    <div class="voice-screen-ambient" aria-hidden="true"></div>
+
+    <header class="voice-screen-header">
+      <div class="voice-session-pill">
+        <span class="live-indicator-dot" id="voiceLiveDot"></span>
+        <span>VOICE PROTOCOL</span>
+        <span class="voice-timer" id="voiceSessionTimer">00:00</span>
+      </div>
+
+      <button
+        type="button"
+        class="icon-btn"
+        id="minimizeVoiceScreenBtn"
+        aria-label="Close Voice Screen"
+        title="Return to Command Interface"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9">
+          <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </header>
+
+    <div class="voice-screen-body">
+      <div class="voice-state-heading" id="voiceScreenStateTitle">LISTENING, SIR</div>
+      <p class="voice-state-sub" id="voiceScreenSub">Speak naturally. I am analyzing your voice stream.</p>
+
+      <!-- Animated Particle Ribbon / Waveform Canvas -->
+      <div class="voice-waveform-wrap">
+        <canvas id="voiceWaveformCanvas" width="600" height="240" aria-label="Live Voice Waveform"></canvas>
+      </div>
+
+      <!-- Live Transcription Box -->
+      <div class="voice-transcript-box" id="voiceTranscriptBox" aria-live="polite">
+        <p class="voice-transcript-text" id="voiceTranscriptText">“Awaiting your command, Sir...”</p>
+      </div>
+    </div>
+
+    <footer class="voice-screen-controls">
+      <!-- Mute / Pause Listening Button -->
+      <button
+        type="button"
+        class="voice-ctrl-btn secondary"
+        id="voiceMuteBtn"
+        aria-label="Pause or Resume Microphone"
+        aria-pressed="false"
+      >
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9">
+          <rect x="6" y="5" width="4" height="14" rx="1" />
+          <rect x="14" y="5" width="4" height="14" rx="1" />
+        </svg>
+        <span id="voiceMuteLabel">Pause</span>
+      </button>
+
+      <!-- Glowing Central Microphone Control -->
+      <button
+        type="button"
+        class="voice-central-mic"
+        id="voiceCentralMicBtn"
+        aria-label="Trigger or Interrupt Voice Interaction"
+      >
+        <span class="mic-pulse-ring ring-1"></span>
+        <span class="mic-pulse-ring ring-2"></span>
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="2" width="6" height="12" rx="3" />
+          <path stroke-linecap="round" d="M5 10v1a7 7 0 0014 0v-1M12 18v4M8 22h8" />
+        </svg>
+      </button>
+
+      <!-- End Session Button -->
+      <button
+        type="button"
+        class="voice-ctrl-btn danger"
+        id="voiceEndBtn"
+        aria-label="End Voice Session"
+      >
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9">
+          <path stroke-linecap="round" d="M18 6L6 18M6 6l12 12" />
+        </svg>
+        <span>End</span>
+      </button>
+    </footer>
+  </section>
+
+  <!-- ================= SIDEBAR DRAWER: CONVERSATION HISTORY & MENU ================= -->
+  <div class="drawer-backdrop hidden" id="drawerBackdrop"></div>
+  <aside class="side-drawer hidden" id="historyDrawer" aria-label="Conversation History and Navigation">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <span class="intelligence-orb"></span>
+        <span>J.A.R.V.I.S. ARCHIVES</span>
+      </div>
+      <button type="button" class="icon-btn" id="closeDrawerBtn" aria-label="Close Menu">✕</button>
+    </div>
+
+    <div class="drawer-actions">
+      <button type="button" class="primary-pill-btn" id="newChatBtn">
+        <span>＋</span> New Mission / Session
+      </button>
+    </div>
+
+    <div class="drawer-section-label">RECENT SESSIONS (LOCAL STORAGE)</div>
+    <div class="history-list" id="historyList" role="list"></div>
+
+    <div class="drawer-footer">
+      <button type="button" class="drawer-nav-btn" id="openDiagnosticsFromDrawer">
+        <span>⚙</span> System Diagnostics
+      </button>
+      <button type="button" class="drawer-nav-btn" id="openSettingsFromDrawer">
+        <span>✦</span> Interface & Voice Settings
+      </button>
+      <button type="button" class="drawer-nav-btn danger-text" id="clearHistoryBtn">
+        <span>🗑</span> Clear Stored Conversations
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= MODAL: SYSTEM DIAGNOSTICS ================= -->
+  <div class="modal-backdrop hidden" id="diagnosticsModal" role="dialog" aria-modal="true" aria-labelledby="diagTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="diagTitle">SYSTEM DIAGNOSTICS // TELEMETRY</h2>
+        <button type="button" class="icon-btn" data-close-modal="diagnosticsModal" aria-label="Close Diagnostics">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-note">
+          Real-time verification of client subsystems, WebGL rendering pipeline, browser speech interfaces, and secure Netlify Gemini API connectivity.
+        </p>
+        <div class="diag-grid" id="diagGrid">
+          <!-- Populated dynamically with actual verified checks -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="secondary-pill-btn" id="runDiagnosticsBtn">Re-Run Live Check</button>
+        <button type="button" class="primary-pill-btn" data-close-modal="diagnosticsModal">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: SETTINGS PANEL ================= -->
+  <div class="modal-backdrop hidden" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="settingsTitle">J.A.R.V.I.S. CONFIGURATION</h2>
+        <button type="button" class="icon-btn" data-close-modal="settingsModal" aria-label="Close Settings">✕</button>
+      </div>
+      <div class="modal-body settings-list">
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Spoken Responses (Voice Output)</div>
+            <div class="setting-desc">Automatically speak JARVIS replies aloud using SpeechSynthesis.</div>
+          </div>
+          <input type="checkbox" id="settingSpokenResponses" class="toggle-switch" checked />
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Auto-Send Voice Dictation</div>
+            <div class="setting-desc">Submit recognized speech immediately or let you review/edit first.</div>
+          </div>
+          <input type="checkbox" id="settingAutoSendVoice" class="toggle-switch" />
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Synthesized Voice Profile</div>
+            <div class="setting-desc">Select an available browser voice engine (prefers calm British/English).</div>
+          </div>
+          <select id="settingVoiceSelect" class="setting-select" aria-label="Select Voice Profile">
+            <option value="">Default System Voice</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Assistant Language</div>
+            <div class="setting-desc">Used for voice recognition and preferred response language.</div>
+          </div>
+          <select id="settingLanguage" class="setting-select" aria-label="Select Assistant Language">
+            <option value="en-GB">English (UK — Classic JARVIS)</option>
+            <option value="en-US">English (United States)</option>
+            <option value="en-IN">English (India)</option>
+            <option value="hi-IN">Hindi (हिन्दी)</option>
+            <option value="es-ES">Spanish (Español)</option>
+            <option value="fr-FR">French (Français)</option>
+            <option value="de-DE">German (Deutsch)</option>
+            <option value="ja-JP">Japanese (日本語)</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Hologram Color Accent</div>
+            <div class="setting-desc">Customize the core holographic projection palette.</div>
+          </div>
+          <select id="settingHologramTheme" class="setting-select" aria-label="Select Hologram Color Theme">
+            <option value="gold">Mark VII Golden Core (#FFB547)</option>
+            <option value="cyan">Arc Reactor Cyan (#57D7FF)</option>
+            <option value="violet">Quantum Violet-Magenta (#A855F7)</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">3D Animation Intensity</div>
+            <div class="setting-desc">Adjust particle count and bloom for mobile battery optimization.</div>
+          </div>
+          <select id="settingAnimationIntensity" class="setting-select" aria-label="Select Animation Intensity">
+            <option value="high">Cinema (Full Particles & Orbits)</option>
+            <option value="balanced">Balanced (Recommended Mobile)</option>
+            <option value="low">Power Saver (Minimal Particles)</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Reduced Motion</div>
+            <div class="setting-desc">Minimize orbital rotation and camera parallax effects.</div>
+          </div>
+          <input type="checkbox" id="settingReducedMotion" class="toggle-switch" />
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Save Conversation History Locally</div>
+            <div class="setting-desc">Stored only in this browser's localStorage. No API keys are ever stored.</div>
+          </div>
+          <input type="checkbox" id="settingSaveHistory" class="toggle-switch" checked />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="danger-pill-btn" id="purgeStorageBtn">Purge All Local Data</button>
+        <button type="button" class="primary-pill-btn" data-close-modal="settingsModal">Save & Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ATTACHMENT & TECHNICAL CONTEXT ================= -->
+  <div class="modal-backdrop hidden" id="attachModal" role="dialog" aria-modal="true" aria-labelledby="attachTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="attachTitle">INJECT FILE OR TECHNICAL CONTEXT</h2>
+        <button type="button" class="icon-btn" data-close-modal="attachModal" aria-label="Close Attachment Modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-note">
+          Upload a code, text, JSON, or Markdown file from your phone/computer, or select a structured protocol below to inject directly into your prompt.
+        </p>
+        <label class="file-upload-zone" for="contextFileInput">
+          <input type="file" id="contextFileInput" accept=".txt,.md,.js,.py,.html,.css,.json,.ts,.jsx,.tsx,.csv" hidden />
+          <span class="upload-icon">📄</span>
+          <span class="upload-title">Tap to Attach Text / Code File</span>
+          <span class="upload-sub">Supports .txt, .md, .js, .py, .html, .css, .json</span>
+        </label>
+
+        <div class="protocol-presets">
+          <button type="button" class="preset-btn" data-preset="code-review">
+            🔍 Full Code Audit & Refactor
+          </button>
+          <button type="button" class="preset-btn" data-preset="architecture">
+            🏗 System Architecture Blueprint
+          </button>
+          <button type="button" class="preset-btn" data-preset="eli5">
+            💡 Explain From First Principles
+          </button>
+          <button type="button" class="preset-btn" data-preset="debug">
+            🐞 Diagnose & Fix Error Trace
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="hologram.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
